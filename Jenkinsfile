@@ -43,9 +43,9 @@ pipeline {
             }
         }
 
-        stage('mvn deploy') {
+        stage('Completion') {
             steps {
-                sh 'mvn deploy'
+                sh 'echo \'Completed the Testing\''
             }
         }
     }
