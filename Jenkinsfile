@@ -2,26 +2,50 @@ pipeline {
     agent any
     
     tools {
-        jdk 'jdk17'
-        maven 'maven3'
+        jdk 'Java 17'
+        maven 'Maven 3.9'
     }
-    
-    stages {   
-        stage('Compile') {
+
+    stages {
+        stage('Verify Tools') {
             steps {
-            sh 'mvn compile'
+                sh 'java -version'
+                sh 'mvn -version'
             }
         }
-        
-        stage('Test') {
+
+        stage('mvn validate') {
+            steps {
+                sh 'mvn validate'
+            }
+        }
+
+        stage('mvn compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('mvn test') {
             steps {
                 sh 'mvn test'
             }
         }
-        
-        stage('Build') {
+
+        stage('mvn package') {
             steps {
                 sh 'mvn package'
+            }
+        }
+        stage('mvn install') {
+            steps {
+                sh 'mvn install'
+            }
+        }
+
+        stage('mvn deploy') {
+            steps {
+                sh 'mvn deploy'
             }
         }
     }
