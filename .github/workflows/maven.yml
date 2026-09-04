@@ -15,7 +15,7 @@ jobs:
   # ============================================================
   build:
     name: Build Application
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
 
     steps:
 
@@ -41,7 +41,7 @@ jobs:
   # ============================================================
   trivy-fs:
     name: Trivy Filesystem Scan
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: build
 
     steps:
@@ -94,7 +94,7 @@ jobs:
   # ============================================================
   sonarqube:
     name: SonarQube Scan
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: trivy-fs
 
     steps:
@@ -124,7 +124,7 @@ jobs:
   # ============================================================
   sonarqube-quality-gate:
     name: SonarQube Quality Gate
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: sonarqube
 
     steps:
@@ -142,7 +142,7 @@ jobs:
   # ============================================================
   docker:
     name: Docker Build, Scan and Push
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: sonarqube-quality-gate
 
     steps:
