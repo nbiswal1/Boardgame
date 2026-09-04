@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -27,6 +28,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+
+      - name: Resolve Maven Dependencies
+        run: mvn -B dependency:resolve
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml
@@ -41,8 +45,21 @@ jobs:
     needs: build
 
     steps:
+
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Download Maven dependencies before Trivy scans.
+      # This helps avoid Maven Central 429 rate-limit errors.
+      - name: Resolve Maven Dependencies
+        run: mvn -B dependency:resolve
 
       - name: Install Trivy
         run: |
@@ -60,11 +77,13 @@ jobs:
           sudo apt-get install -y trivy
 
       - name: Verify Trivy
-        run: trivy --version
+        run: |
+          trivy --version
 
       - name: Trivy Filesystem Scan
         run: |
           trivy fs \
+            --scanners vuln \
             --format table \
             -o fs.html \
             .
@@ -79,6 +98,7 @@ jobs:
     needs: trivy-fs
 
     steps:
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -88,6 +108,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+
+      - name: Resolve Maven Dependencies
+        run: mvn -B dependency:resolve
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
@@ -105,6 +128,7 @@ jobs:
     needs: sonarqube
 
     steps:
+
       - name: SonarQube Quality Gate Check
         uses: SonarSource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
@@ -122,21 +146,31 @@ jobs:
     needs: sonarqube-quality-gate
 
     steps:
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # --------------------------------------------------------
+      # Docker Setup
+      # --------------------------------------------------------
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # --------------------------------------------------------
+      # Build Docker Image
+      # --------------------------------------------------------
       - name: Build Docker Image
         run: |
           docker build \
             -t adijaiswal/boardgame:latest \
             .
 
+      # --------------------------------------------------------
+      # Install Trivy
+      # --------------------------------------------------------
       - name: Install Trivy
         run: |
           sudo apt-get update
@@ -153,21 +187,32 @@ jobs:
           sudo apt-get install -y trivy
 
       - name: Verify Trivy
-        run: trivy --version
+        run: |
+          trivy --version
 
+      # --------------------------------------------------------
+      # Trivy Docker Image Scan
+      # --------------------------------------------------------
       - name: Trivy Docker Image Scan
         run: |
           trivy image \
+            --scanners vuln \
             --format table \
             -o trivy-image-report.html \
             adijaiswal/boardgame:latest
 
+      # --------------------------------------------------------
+      # Docker Hub Login
+      # --------------------------------------------------------
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # --------------------------------------------------------
+      # Push Docker Image
+      # --------------------------------------------------------
       - name: Push Docker Image
         run: |
           docker push adijaiswal/boardgame:latest
