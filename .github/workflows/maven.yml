@@ -42,7 +42,7 @@ jobs:
       uses: SonarSource/sonarqube-scan-action@v6
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_HOST_URL: https://sonarqube.example.com
 
     - name: SonarQube Quality Gate check
       id: sonarqube-quality-gate-check
@@ -50,7 +50,7 @@ jobs:
       timeout-minutes: 5
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_HOST_URL: https://sonarqube.example.com
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
